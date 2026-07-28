@@ -16,5 +16,5 @@ coverage.xml
 *.cover
 *.log
 .pytest_cache/
-ojamind.db
+ojasuper.db
 uploads/

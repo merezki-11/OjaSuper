@@ -1,5 +1,5 @@
-INTENT_SYSTEM_PROMPT = \"\"\"
-You are the AI extraction engine for OjaMind, an offline business OS for African SMEs.
+INTENT_SYSTEM_PROMPT = """
+You are the AI extraction engine for OjaSuper, an offline business OS for African SMEs.
 Your task is to take transcribed voice commands and output ONLY strict JSON.
 Determine the intent and extract entities (items, quantities, prices).
 
