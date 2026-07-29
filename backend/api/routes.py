@@ -53,8 +53,49 @@ async def process_voice_command(audio: UploadFile = File(...), db: Session = Dep
         log_action(db, "Business Rules Failed", intent_data)
         raise HTTPException(status_code=400, detail=rule_err)
         
-    # 5. DB Transaction (Mocked execution for now)
-    # Ideally, we call crud.create_sale or crud.update_inventory here based on intent
+    # 5. DB Transaction Execution
+    execution_result = {}
+    intent = intent_data.get("intent")
+    
+    if intent == "Record Sale":
+        for item in intent_data.get("items", []):
+            sale = schemas.SaleCreate(
+                inventory_id=item["resolved_id"],
+                quantity=item["quantity"],
+                total_price=intent_data.get("total_price", 0),
+                discount=intent_data.get("discount", 0.0),
+                is_override=intent_data.get("is_override", 0)
+            )
+            crud.create_sale(db, sale)
+        execution_result = {"message": "Sale recorded successfully."}
+        
+    elif intent == "Restock" or intent == "Record Purchase":
+        for item in intent_data.get("items", []):
+            purchase = schemas.PurchaseCreate(
+                inventory_id=item["resolved_id"],
+                quantity=item["quantity"],
+                cost_price=item.get("cost_price", 0)
+            )
+            crud.create_purchase(db, purchase)
+        execution_result = {"message": "Restock recorded successfully."}
+        
+    elif intent == "Delete Item":
+        item_name = intent_data.get("name")
+        resolved = resolve_inventory_item(db, item_name)
+        if resolved and resolved[0]:
+            crud.delete_inventory_item(db, resolved[0].id)
+            execution_result = {"message": f"Deleted {item_name} from inventory."}
+            
+    elif intent == "Inventory Query":
+        item_name = intent_data.get("name")
+        resolved = resolve_inventory_item(db, item_name)
+        if resolved and resolved[0]:
+            execution_result = {"message": f"You have {resolved[0].quantity} {resolved[0].name} left."}
+            
+    elif intent == "Profit Query":
+        profit = crud.get_profit_report(db)
+        execution_result = {"message": f"Total profit is {profit['profit']}."}
+        
     log_action(db, "Success", intent_data)
     
     return {
@@ -62,7 +103,7 @@ async def process_voice_command(audio: UploadFile = File(...), db: Session = Dep
         "transcription": transcription, 
         "intent": intent_data,
         "warnings": warnings,
-        "message": "Transaction successfully executed and audited."
+        "execution": execution_result
     }
 
 # --- INVENTORY ROUTES ---
@@ -158,3 +199,12 @@ def get_setting(key: str, db: Session = Depends(get_db)):
     if db_setting is None:
         raise HTTPException(status_code=404, detail="Setting not found")
     return {"key": db_setting.key, "value": db_setting.value}
+
+# --- REPORTS ROUTES ---
+@router.get("/reports/daily")
+def get_daily_report(db: Session = Depends(get_db)):
+    return crud.get_daily_report(db)
+
+@router.get("/reports/profit")
+def get_profit_report(db: Session = Depends(get_db)):
+    return crud.get_profit_report(db)

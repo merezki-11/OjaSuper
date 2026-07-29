@@ -142,3 +142,32 @@ def create_employee(db: Session, employee: schemas.EmployeeCreate):
 def get_employee_by_username(db: Session, username: str):
     return db.query(models.Employee).filter(models.Employee.username == username).first()
 
+# --- REPORTS CRUD ---
+from sqlalchemy import func
+from datetime import datetime, timedelta
+
+def get_daily_report(db: Session):
+    today = datetime.now().date()
+    sales = db.query(
+        func.sum(models.Sale.total_price).label("total_revenue"),
+        func.count(models.Sale.id).label("transactions_count")
+    ).filter(func.date(models.Sale.created_at) == today).first()
+    
+    return {
+        "date": str(today),
+        "total_revenue": sales.total_revenue or 0.0,
+        "transactions_count": sales.transactions_count or 0
+    }
+
+def get_profit_report(db: Session):
+    # Calculate profit by joining Sale with Inventory
+    sales = db.query(models.Sale, models.Inventory).join(models.Inventory, models.Sale.inventory_id == models.Inventory.id).all()
+    total_revenue = sum(sale.Sale.total_price for sale in sales)
+    total_cost = sum(sale.Inventory.buying_price * sale.Sale.quantity for sale in sales)
+    
+    return {
+        "total_revenue": total_revenue,
+        "total_cost": total_cost,
+        "profit": total_revenue - total_cost
+    }
+

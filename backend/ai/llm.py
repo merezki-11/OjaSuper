@@ -25,5 +25,13 @@ def extract_intent_mock(text: str) -> dict:
         return {"intent": "Profit Query", "confidence": 0.9}
     elif "credit" in text_lower or "owe" in text_lower:
         return {"intent": "Credit Query", "customer": "john", "confidence": 0.85}
+    elif "delete" in text_lower or "remove" in text_lower:
+        return {"intent": "Delete Item", "name": "rice", "manager_approval_granted": True, "confidence": 0.95}
+    elif "report" in text_lower:
+        return {"intent": "Daily Report", "confidence": 0.9}
+    elif "lookup" in text_lower or "find customer" in text_lower:
+        return {"intent": "Customer Lookup", "customer_name": "john", "confidence": 0.9}
+    elif "how much" in text_lower and "left" in text_lower:
+        return {"intent": "Inventory Query", "name": "rice", "confidence": 0.9}
         
     return {"intent": "Unknown", "confidence": 0.1}

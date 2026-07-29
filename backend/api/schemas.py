@@ -47,6 +47,10 @@ class SaleBase(BaseModel):
     quantity: int
     total_price: float
     customer_id: Optional[int] = None
+    discount: float = 0.0
+    is_refund: int = 0
+    is_return: int = 0
+    override_reason: Optional[str] = None
 
 class SaleCreate(SaleBase):
     pass
@@ -105,6 +109,7 @@ class TransactionBase(BaseModel):
     customer_id: int
     amount: float
     transaction_type: str
+    override_reason: Optional[str] = None
 
 class TransactionCreate(TransactionBase):
     pass

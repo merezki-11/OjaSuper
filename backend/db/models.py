@@ -21,6 +21,10 @@ class Sale(Base):
     quantity = Column(Integer, nullable=False)
     total_price = Column(Float, nullable=False)
     customer_id = Column(Integer, nullable=True)
+    discount = Column(Float, default=0.0)
+    is_refund = Column(Integer, default=0)
+    is_return = Column(Integer, default=0)
+    override_reason = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Customer(Base):
@@ -70,5 +74,6 @@ class Transaction(Base):
     customer_id = Column(Integer, nullable=False)
     amount = Column(Float, nullable=False)
     transaction_type = Column(String, nullable=False) # "payment" or "credit"
+    override_reason = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

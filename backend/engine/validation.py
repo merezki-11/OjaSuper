@@ -23,10 +23,17 @@ def validate_intent(intent_data: dict) -> tuple[bool, str]:
             if intent in ["Record Purchase", "Restock"] and item.get("cost_price", 0) <= 0:
                 return False, f"Invalid cost price for {item.get('name')}"
                 
-    elif intent == "Modify Item":
+    elif intent in ["Modify Item", "Delete Item", "Inventory Query"]:
         if not intent_data.get("name"):
-            return False, "Item name is required for modification."
+            return False, f"Item name is required for {intent}."
             
+    elif intent == "Customer Lookup":
+        if not intent_data.get("customer_name") and not intent_data.get("phone_number"):
+            return False, "Customer name or phone is required for lookup."
+            
+    elif intent == "Record Refund" or intent == "Record Return":
+        if not intent_data.get("items"):
+            return False, f"No items found for {intent}."
     # 3. Date Validation (if applicable)
     date_str = intent_data.get("date")
     if date_str:
